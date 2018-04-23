@@ -64,3 +64,12 @@ RUN mkdir -p /etc/docker \
     && npm i -g yarn \
     && npm i -g n \
     && n latest \
+
+RUN ln -s \
+    /root/.emacs.d/layers/+distributions/spacemacs-docker/deps-install/run \
+    /usr/local/sbin/install-deps \
+    && chown root:root /usr/local/sbin/install-deps \
+    && chmod 770 /usr/local/sbin/install-deps
+
+# Install global dependencies (if any exists)
+RUN install-deps
