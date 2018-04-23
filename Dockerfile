@@ -63,13 +63,46 @@ RUN mkdir -p /etc/docker \
     && npm i -g npm \
     && npm i -g yarn \
     && npm i -g n \
-    && n latest \
+    && n latest
+
+ENV UNAME="root" \
+    UHOME="/root" \
+    UID="1000"
+
+# Default fonts
+ENV NNG_URL="https://github.com/google/fonts/raw/master/ofl/\
+nanumgothic/NanumGothic-Regular.ttf" \
+    SCP_URL="https://github.com/adobe-fonts/source-code-pro/\
+archive/2.030R-ro/1.050R-it.tar.gz"
+RUN apt-get update && apt-get install wget \
+    && mkdir -p /usr/local/share/fonts \
+    && wget -qO- "${SCP_URL}" | tar xz -C /usr/local/share/fonts \
+    && wget -q "${NNG_URL}" -P /usr/local/share/fonts \
+    && fc-cache -fv \
+    && apt-get purge wget \
+    && rm -rf /tmp/* /var/lib/apt/lists/* /root/.cache/*
+
+# Init Spacemacs
+RUN cp ${UHOME}/.emacs.d/core/templates/.spacemacs.template ${UHOME}/ \
+    && mv ${UHOME}/.spacemacs.template ${UHOME}/.spacemacs \
+    && sed -i "s/\(-distribution 'spacemacs\)/\1-docker/" \
+    ${UHOME}/.spacemacs \
+    && asEnvUser emacs -batch -u ${UNAME} -kill \
+    && asEnvUser emacs -batch -u ${UNAME} -kill \
+    && chmod ug+rw -R ${UHOME}
+
+# Test Spacemacs
+RUN asEnvUser make -C ${UHOME}/.emacs.d/tests/core/ test \
+    && cd ${UHOME}/.emacs.d \
+    && printf "SPACEMACS REVISION: %s\n" "$(git rev-parse --verify HEAD)"
 
 RUN ln -s \
-    /root/.emacs.d/layers/+distributions/spacemacs-docker/deps-install/run \
+    ${UHOME}/.emacs.d/layers/+distributions/spacemacs-docker/deps-install/run \
     /usr/local/sbin/install-deps \
     && chown root:root /usr/local/sbin/install-deps \
     && chmod 770 /usr/local/sbin/install-deps
 
 # Install global dependencies (if any exists)
 RUN install-deps
+
+# Entrypoint and deps installation script will recreate it.
