@@ -39,17 +39,28 @@ RUN apt-get update && apt-get install software-properties-common \
     && apt-add-repository ppa:kelleyk/emacs \
     && apt-get update && apt-get install emacs25
 # fish
-RUN apt-add-repository ppa:fish-shell/release-2 \
+RUN apt-get install curl \
+    && apt-add-repository ppa:fish-shell/release-2 \
     && apt-get update \
     && apt-get install fish \
-    && curl -L https://get.oh-my.fish > install \
-    && fish install --path=~/.local/share/omf --config=~/.config/omf \
+#    && curl -L https://get.oh-my.fish | fish \
+#    && fish install --path=~/.local/share/omf --config=~/.config/omf \
 # docker
     && curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun \
     && curl -L https://github.com/docker/compose/releases/download/1.21.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose \
-# other
-   && apt install htop \
 # Cleanup
     && apt-get purge software-properties-common \
-    && rm -rf /tmp/* /var/lib/apt/lists/* /root/.cache/* \
+    && rm -rf /tmp/* /var/lib/apt/lists/* /root/.cache/*
+
+# other
+RUN apt install htop \
+    && sudo mkdir -p /etc/docker \
+    && sudo tee /etc/docker/daemon.json <<-'EOF' \
+    {
+    "registry-mirrors": ["https://07715eyb.mirror.aliyuncs.com"]
+    }
+    EOF \
+    && sudo systemctl daemon-reload \
+    && sudo systemctl restart docker \
+    && curl -L https://get.oh-my.fish | fish \
