@@ -43,7 +43,7 @@ RUN apt-get install curl \
     && apt-add-repository ppa:fish-shell/release-2 \
     && apt-get update \
     && apt-get install fish \
-    && curl -L https://get.oh-my.fish | fish \
+#    && curl -L https://get.oh-my.fish | fish \
 #    && fish install --path=~/.local/share/omf --config=~/.config/omf \
 # docker
     && curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun \
