@@ -80,3 +80,5 @@ dpkg -i dumb-init_*.deb && rm -f dumb-init_*.deb && \
 apt-get clean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 RUN yarn global add puppeteer@1.3.0 && yarn cache clean
+
+RUN curl -L https://get.oh-my.fish | fish
