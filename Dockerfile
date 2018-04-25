@@ -63,46 +63,20 @@ RUN mkdir -p /etc/docker \
     && npm i -g npm \
     && npm i -g yarn \
     && npm i -g n \
+    && apt-get install net-tools \
+    && apt-get install iputils-ping \
     && n latest
 
-ENV UNAME="root" \
-    UHOME="/root" \
-    UID="1000"
+# pupeteer
+RUN apt-get update && \
+apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
+libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
+libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 \
+libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
+fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
+ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget && \
+wget https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_amd64.deb && \
+dpkg -i dumb-init_*.deb && rm -f dumb-init_*.deb && \
+apt-get clean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
-# Default fonts
-ENV NNG_URL="https://github.com/google/fonts/raw/master/ofl/\
-nanumgothic/NanumGothic-Regular.ttf" \
-    SCP_URL="https://github.com/adobe-fonts/source-code-pro/\
-archive/2.030R-ro/1.050R-it.tar.gz"
-RUN apt-get update && apt-get install wget \
-    && mkdir -p /usr/local/share/fonts \
-    && wget -qO- "${SCP_URL}" | tar xz -C /usr/local/share/fonts \
-    && wget -q "${NNG_URL}" -P /usr/local/share/fonts \
-    && fc-cache -fv \
-    && apt-get purge wget \
-    && rm -rf /tmp/* /var/lib/apt/lists/* /root/.cache/*
-
-# Init Spacemacs
-RUN cp ${UHOME}/.emacs.d/core/templates/.spacemacs.template ${UHOME}/ \
-    && mv ${UHOME}/.spacemacs.template ${UHOME}/.spacemacs \
-    && sed -i "s/\(-distribution 'spacemacs\)/\1-docker/" \
-    ${UHOME}/.spacemacs \
-    && asEnvUser emacs -batch -u ${UNAME} -kill \
-    && asEnvUser emacs -batch -u ${UNAME} -kill \
-    && chmod ug+rw -R ${UHOME}
-
-# Test Spacemacs
-RUN asEnvUser make -C ${UHOME}/.emacs.d/tests/core/ test \
-    && cd ${UHOME}/.emacs.d \
-    && printf "SPACEMACS REVISION: %s\n" "$(git rev-parse --verify HEAD)"
-
-RUN ln -s \
-    ${UHOME}/.emacs.d/layers/+distributions/spacemacs-docker/deps-install/run \
-    /usr/local/sbin/install-deps \
-    && chown root:root /usr/local/sbin/install-deps \
-    && chmod 770 /usr/local/sbin/install-deps
-
-# Install global dependencies (if any exists)
-RUN install-deps
-
-# Entrypoint and deps installation script will recreate it.
+RUN yarn global add puppeteer@1.3.0 && yarn cache clean
