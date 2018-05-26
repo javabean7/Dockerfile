@@ -2,7 +2,7 @@ ARG VERSION=latest
 FROM ubuntu:$VERSION
 MAINTAINER riki <java_ljx@163.com>
 
-RUN apt-get install curl \
+RUN apt-get update && apt-get install curl \
 && curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 
 RUN apt-get update && apt-get install -y apt-transport-https
