@@ -1,12 +1,27 @@
-ARG VERSION=latest
-FROM ubuntu:$VERSION
-MAINTAINER riki <java_ljx@163.com>
+FROM alpine
+
+LABEL maintainer="riki  <java_ljx@163.com>"
+
+ARG VCS_REF
+ARG BUILD_DATE
+
+# Metadata
+LABEL org.label-schema.vcs-ref=$VCS_REF \
+org.label-schema.vcs-url="https://github.com/lachie83/k8s-kubectl" \
+org.label-schema.build-date=$BUILD_DATE \
+org.label-schema.docker.dockerfile="/Dockerfile"
+
+ENV KUBE_LATEST_VERSION="v1.10.3"
 
 RUN apt-get update && apt-get install -y curl \
 && curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
+RUN apk add --update ca-certificates \
+&& apk add --update -t deps curl \
+&& curl -L https://storage.googleapis.com/kubernetes-release/release/${KUBE_LATEST_VERSION}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl \
+&& chmod +x /usr/local/bin/kubectl \
+&& apk del --purge deps \
+&& rm /var/cache/apk/*
 
-RUN apt-get update && apt-get install -y apt-transport-https
-RUN curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-cat <<EOF >/etc/apt/sources.list.d/kubernetes.list deb http://apt.kubernetes.io/ kubernetes-xenial main EOF && \
-apt-get update
-RUN apt-get install -y kubectl
+WORKDIR /root
+ENTRYPOINT ["kubectl"]
+CMD ["help"]
